@@ -30,7 +30,7 @@ export default class Profile extends Component {
        created_at: Date.now()
      }
 
-     const options = { encrypt: false }
+     const options = { encrypt: true }
      userSession.putFile('status.json', JSON.stringify(status), options)
        .then(() => {
          this.setState({
@@ -40,7 +40,7 @@ export default class Profile extends Component {
   }
   fetchData() {
    const { userSession } = this.props
-   const options = { decrypt: false }
+   const options = { decrypt: true }
    userSession.getFile('status.json', options)
      .then((file) => {
        var status = JSON.parse(file || '[]')
