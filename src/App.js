@@ -1,51 +1,41 @@
-import React, { Component } from 'react';
-import Profile from './Profile.js';
-import Signin from './Signin.js';
-import {
-  UserSession,
-  AppConfig
-} from 'blockstack';
+import React, { Component } from 'react'
+import './App.css'
+import { UserSession } from 'blockstack'
 
-const appConfig = new AppConfig(['store_write', 'publish_data'])
-const userSession = new UserSession({ appConfig: appConfig })
+import Landing from './Landing'
+import SignedIn from './SignedIn'
 
-export default class App extends Component {
+class App extends Component {
 
-  constructor(){
+  constructor() {
     super()
-    console.log(appConfig)
-    console.log(userSession)
+    this.userSession = new UserSession()
   }
 
-  handleSignIn(e) {
-    e.preventDefault();
-    userSession.redirectToSignIn();
-  }
-
-  handleSignOut(e) {
-    e.preventDefault();
-    userSession.signUserOut(window.location.origin);
+  componentWillMount() {
+    const session = this.userSession
+    if(!session.isUserSignedIn() && session.isSignInPending()) {
+      session.handlePendingSignIn()
+      .then((userData) => {
+        if(!userData.username) {
+          throw new Error('This app requires a username.')
+        }
+        window.location = `/kingdom/${userData.username}`
+      })
+    }
   }
 
   render() {
     return (
-      <div className="site-wrapper">
-        <div className="site-wrapper-inner">
-          { !userSession.isUserSignedIn() ?
-            <Signin userSession={userSession} handleSignIn={ this.handleSignIn } />
-            : <Profile userSession={userSession} handleSignOut={ this.handleSignOut } />
+      <main role="main">
+          {this.userSession.isUserSignedIn() ?
+            <SignedIn />
+          :
+            <Landing />
           }
-        </div>
-      </div>
+      </main>
     );
   }
-
-  componentDidMount() {
-    if (userSession.isSignInPending()) {
-      userSession.handlePendingSignIn().then((userData) => {
-        window.history.replaceState({}, document.title, "/")
-        this.setState({ userData: userData})
-      });
-    }
-  }
 }
+
+export default App
